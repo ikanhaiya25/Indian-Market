@@ -9,7 +9,7 @@ log = logging.getLogger("poller")
 
 SYMBOLS = ["RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS"]
 TOPIC = "market-bars"
-POLL_INTERVAL_SEC = 60  # don't go lower — avoid rate limiting
+POLL_INTERVAL_SEC = 60  
 
 producer = KafkaProducer(
     bootstrap_servers="localhost:9092",
@@ -28,7 +28,7 @@ def poll_and_publish():
         return
     for symbol in SYMBOLS:
         try:
-            sym_data = data[symbol].dropna(subset=["Volume"])  # drop unfinished/incomplete bars
+            sym_data = data[symbol].dropna(subset=["Volume"]) 
             if sym_data.empty:
                 log.warning(f"No complete bars available yet for {symbol}")
                 continue

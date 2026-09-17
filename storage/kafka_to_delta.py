@@ -15,7 +15,7 @@ BATCH_SIZE = 20
 consumer = KafkaConsumer(
     TOPIC,
     bootstrap_servers="localhost:9092",
-    value_deserializer=JSONDeserializer(),   # <- instance, not a lambda
+    value_deserializer=JSONDeserializer(),
     auto_offset_reset="earliest",
     group_id="delta_writer",
 )
