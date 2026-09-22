@@ -27,3 +27,16 @@ df = df.withColumn("rs",F.col("avg_gain") / F.col("avg_loss"))
 
 df = df.withColumn("rsi_14", F.lit(100) - (F.lit(100) / (F.lit(1) + F.col("rs"))))
 
+df = df.withColumn("cum_pv", F.sum(F.col("close") * F.col("volume")).over(w_unbounded))
+
+df = df.withColumn("cum_vol",F.sum("volume").over(w_unbounded))
+
+df = df.withColumn("vmap",F.col("cum_pv") / F.col("cum_vol"))
+
+gold = df.frop("prev_close", "delta","gain", "loss","avg_gain", "avg_loss","rs","cum_pv","cum_vol")
+
+gold.write.format("delta").mode("overwrite").save("data/delta/gold_bars")
+
+print(f"Gold: {gold.count()} rows with features")
+
+spark.stop()
