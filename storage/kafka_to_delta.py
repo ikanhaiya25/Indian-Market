@@ -1,12 +1,7 @@
 import json
 import pandas as pd
 from kafka import KafkaConsumer
-from kafka.serializer.abstract import Deserializer
 from deltalake.writer import write_deltalake
-
-class JSONDeserializer(Deserializer):
-    def deserialize(self, topic, bytes_):
-        return json.loads(bytes_.decode("utf-8"))
 
 TOPIC = "market-bars"
 DELTA_PATH = "data/delta/bronze_bars"
@@ -15,7 +10,7 @@ BATCH_SIZE = 20
 consumer = KafkaConsumer(
     TOPIC,
     bootstrap_servers="localhost:9092",
-    value_deserializer=JSONDeserializer(),
+    value_deserializer=lambda value: json.loads(value.decode("utf-8")),
     auto_offset_reset="earliest",
     group_id="delta_writer",
 )

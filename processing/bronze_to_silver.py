@@ -3,7 +3,7 @@ from spark_session import get_spark
 
 spark = get_spark("BronzeToSilver")
 
-df = spark.read.format("delta").load("data/delta/bromze_bars")
+df = spark.read.format("delta").load("data/delta/bronze_bars")
 
 df = df.withColumn("timestamps",F.to_timestamp("timestamp"))
 df = df.dropna(subset=["open","high","low","close","volume"])
