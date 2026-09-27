@@ -19,6 +19,7 @@ services:
       - "9000:9000"
     volumes:
       - ch_data:/var/lib/clickhouse
+      - ./clickhouse/local-pipeline-user.xml:/etc/clickhouse-server/users.d/local-pipeline-user.xml:ro
     ulimits:
       nofile:
         soft: 262144
