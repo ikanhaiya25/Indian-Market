@@ -18,18 +18,22 @@ ENGINE = ReplacingMergeTree(ingested_at)
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (symbol, interval, timestamp);
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS market_bars_daily_mv
-ENGINE = AggregatingMergeTree()
-PARTITION BY toYYYYMM(day)
-ORDER BY (symbol, day)
-AS
+
+DROP VIEW IF EXISTS market_bars_daily_mv;
+
+CREATE VIEW IF NOT EXISTS market_bars_current AS
+SELECT *
+FROM market_bars FINAL;
+
+CREATE VIEW IF NOT EXISTS market_bars_daily AS
 SELECT
     symbol,
+    interval,
     toDate(timestamp) AS day,
-    argMinState(open, timestamp)  AS open_state,
-    maxState(high)                AS high_state,
-    minState(low)                 AS low_state,
-    argMaxState(close, timestamp) AS close_state,
-    sumState(volume)               AS volume_state
-FROM market_bars
-GROUP BY symbol, day;
+    argMin(open, timestamp) AS open,
+    max(high) AS high,
+    min(low) AS low,
+    argMax(close, timestamp) AS close,
+    sum(volume) AS volume
+FROM market_bars_current
+GROUP BY symbol, interval, day;

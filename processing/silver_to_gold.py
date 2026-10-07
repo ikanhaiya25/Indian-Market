@@ -11,7 +11,11 @@ spark = get_spark("SilverToGold")
 df = spark.read.format("delta").load(str(PROJECT_ROOT / "data/delta/silver_bars"))
 
 w = Window.partitionBy("symbol", "interval").orderBy("timestamp")
-w_unbounded = w.rowsBetween(Window.unboundedPreceding, 0)
+session_window = (
+	Window.partitionBy("symbol", "interval", F.to_date("timestamp"))
+	.orderBy("timestamp")
+	.rowsBetween(Window.unboundedPreceding, 0)
+)
 
 df = df.withColumn("sma_5", F.avg("close").over(w.rowsBetween(-4, 0)))
 df = df.withColumn("sma_20", F.avg("close").over(w.rowsBetween(-19, 0)))
@@ -28,9 +32,13 @@ df = df.withColumn("rsi_14", F.when(
 	F.when(F.col("avg_gain") == 0, 50.0).otherwise(100.0),
 ).otherwise(100.0 - (100.0 / (1.0 + F.col("avg_gain") / F.col("avg_loss")))))
 
-df = df.withColumn("cum_pv", F.sum(F.col("close") * F.col("volume")).over(w_unbounded))
-df = df.withColumn("cum_vol", F.sum("volume").over(w_unbounded))
-df = df.withColumn("vwap", F.when(F.col("cum_vol") > 0, F.col("cum_pv") / F.col("cum_vol")))
+typical_price = (F.col("high") + F.col("low") + F.col("close")) / 3.0
+df = df.withColumn("cum_pv", F.sum(typical_price * F.col("volume")).over(session_window))
+df = df.withColumn("cum_vol", F.sum("volume").over(session_window))
+df = df.withColumn(
+	"vwap",
+	F.when(F.col("cum_vol") > 0, F.col("cum_pv") / F.col("cum_vol")),
+)
 
 gold = df.drop(
 	"prev_close", "delta", "gain", "loss", "avg_gain", "avg_loss", "cum_pv", "cum_vol"

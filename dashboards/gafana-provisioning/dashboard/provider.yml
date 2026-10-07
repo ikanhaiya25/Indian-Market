@@ -1,0 +1,15 @@
+apiVersion: 1
+providers:
+  - name: Indian Market
+    orgId: 1
+    folder: Indian Market
+    type: file
+    dsiableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options: 
+      path:
+      /etc/grafana/provisioning/dashboards
+      folderFromFileStructuer: false
+
+      
